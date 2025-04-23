@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CarRest.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebApiCar.Model;
@@ -12,30 +13,45 @@ namespace WebApiCar.Controllers
     [ApiController]
     public class CarsController : ControllerBase
     {
-        public static List<Car> carList = new List<Car>()
+        private readonly CarRepo repo;
+        public CarsController(CarRepo carRepo)
         {
-            new Car(){Id = 1,Model="x3",Vendor="Tesla", Price=400000},
-            new Car(){Id = 2,Model="x2",Vendor="Tesla", Price=600000},
-            new Car(){Id = 3,Model="x1",Vendor="Tesla", Price=800000},
-            new Car(){Id = 4,Model="x0",Vendor="Tesla", Price=1400000},
-        };
-
+            repo = carRepo;
+        }
         /// <summary>
         /// Method for get all the cars from the static list
         /// </summary>
         /// <returns>List of cars</returns>
         // GET: api/Cars
         [HttpGet]
-        public IEnumerable<Car> Get()
+        public IActionResult Get()
         {
-            return carList;
+            List<Car> cars = repo.GetAll();
+
+            if (cars.Count != 0)
+            {
+                return Ok(cars);
+            }
+            else
+            {
+                return NoContent();
+            }
         }
 
         // GET: api/Cars/5
-        [HttpGet("{id}", Name = "Get")]
-        public Car Get(int id)
+        [HttpGet("{id}")]
+        public IActionResult Get(int id)
         {
-            return carList.FirstOrDefault(x => x.Id == id);
+            Car c = repo.GetById(id);
+
+            if (c != null)
+            {
+                return Ok(c);
+            }
+            else
+            {
+                return NotFound(c);
+            }
         }
 
         /// <summary>
@@ -44,10 +60,18 @@ namespace WebApiCar.Controllers
         /// <param name="value"></param>
         // POST: api/Cars
         [HttpPost]
-        public void Post([FromBody] Car value)
+        public IActionResult Post([FromBody] CarDTO value)
         {
-            Car newcar = new Car() { Id = GetId(), Model = value.Model, Vendor = value.Vendor, Price = value.Price };
-            carList.Add(newcar);
+            Car c = repo.Add(ModelConverter.CarConvert(value));
+
+            if (c != null)
+            {
+                return Created("api/" + c.Id, c);
+            }
+            else
+            {
+                return NoContent();
+            }
         }
 
         // PUT: api/Cars/5
@@ -58,15 +82,18 @@ namespace WebApiCar.Controllers
 
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
-            carList.Remove(Get(id));
-        }
+            Car c = repo.Remove(id);
 
-       int GetId()
-        {
-            int max = carList.Max(x => x.Id);
-            return max+1;
+            if (c != null)
+            {
+                return Ok(c);
+            }
+            else
+            {
+                return NoContent();
+            }
         }
 
     }
