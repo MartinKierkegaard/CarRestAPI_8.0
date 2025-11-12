@@ -4,3 +4,23 @@ GET {{CarRest_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+GET {{CarRest_HostAddress}}/api/cars
+Accept: application/json
+###
+
+GET {{CarRest_HostAddress}}/api/cars/1  
+Accept: application/json
+###
+POST {{CarRest_HostAddress}}/api/cars
+Content-Type: application/json
+{  
+  "vendor": "Toyota",
+  "model": "Corolla",
+  "price": 250000
+}
+###
+
+DELETE {{CarRest_HostAddress}}/api/cars/1
+Accept: application/json
+###
